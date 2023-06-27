@@ -2,13 +2,24 @@ import signUpUser from './4-user-promise';
 import uploadPhoto from './5-photo-reject';
 
 export default function handleProfileSignup(firstName, lastName, fileName) {
-  const promise1 = signUpUser(firstName, lastName);
-  const promise2 = uploadPhoto(fileName);
-
-  return Promise.allSettled([promise1, promise2]).then((results) => {
-    return results.map((result) => ({
-      status: result.status,
-      value: result.status === 'fulfilled' ? result.value : result.reason,
-    }));
-  });
+  return Promise.allSettled([
+    signUpUser(firstName, lastName),
+    uploadPhoto(fileName)])
+    .then((result) => {
+      const array = [];
+      result.forEach((index) => {
+        if (index.status === 'fulfilled') {
+          array.push({
+            status: index.status,
+            value: index.value,
+          });
+        } else {
+          array.push({
+            status: index.status,
+            value: `Error: ${index.reason.message}`,
+          });
+        }
+      });
+      return array;
+    });
 }

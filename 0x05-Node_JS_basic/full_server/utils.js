@@ -1,35 +1,40 @@
 const fs = require('fs');
 
-function readDatabase(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-        return;
-      }
+const readDatabase = (path) => new Promise((resolve, reject) => {
+  fs.readFile(path, (error, csvData) => {
+    if (error) {
+      reject(Error('Cannot load the database'));
+    }
+    if (csvData) {
+      const fields = {};
+      const dataShow = {};
+      let data = csvData.toString().split('\n');
+      data = data.filter((element) => element.length > 0);
 
-      const result = {};
-      const lines = data.split('\n');
-      lines.shift();
-
-      lines.forEach((line) => {
-        const fields = line.split(',');
-        if (fields.length >= 4) {
-          const field = fields[3].trim();
-          const firstName = fields[0].trim();
-
-          if (!result[field]) {
-            result[field] = [];
+      data.shift();
+      data.forEach((element) => {
+        if (element.length > 0) {
+          const row = element.split(',');
+          if (row[3] in fields) {
+            fields[row[3]].push(row[0]);
+          } else {
+            fields[row[3]] = [row[0]];
           }
-          result[field].push(firstName);
         }
       });
+      for (const field in fields) {
+        if (field) {
+          const list = fields[field];
+          dataShow[field] = {
+            list: `List: ${list.toString().replace(/,/g, ', ')}`,
+            number: list.length,
+          };
+        }
+      }
 
-      resolve(result);
-    });
+      resolve(dataShow);
+    }
   });
-}
+});
 
-module.exports = {
-  readDatabase,
-};
+module.exports = readDatabase;

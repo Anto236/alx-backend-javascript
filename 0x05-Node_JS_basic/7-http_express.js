@@ -17,10 +17,13 @@ app.get('/students', (req, res) => {
       throw Error('Cannot load the database');
     }
     const result = [];
-    data.split('\n').forEach((data) => {
-      result.push(data.split(','));
-    });
-    result.shift();
+    const lines = data.split('\n');
+    for (const line of lines) {
+      const fields = line.split(',');
+      if (fields.length >= 4) { // Check if the line has enough fields
+        result.push(fields);
+      }
+    }
     const newis = [];
     result.forEach((data) => newis.push([data[0], data[3]]));
     const fields = new Set();
@@ -28,7 +31,7 @@ app.get('/students', (req, res) => {
     const final = {};
     fields.forEach((data) => { (final[data] = 0); });
     newis.forEach((data) => { (final[data[1]] += 1); });
-    res.write(`Number of students: ${result.filter((check) => check.length > 3).length}\n`);
+    res.write(`Number of students: ${result.length}\n`);
     Object.keys(final).forEach((data) => res.write(`Number of students in ${data}: ${final[data]}. List: ${newis.filter((n) => n[1] === data).map((n) => n[0]).join(', ')}\n`));
     res.end();
   });
